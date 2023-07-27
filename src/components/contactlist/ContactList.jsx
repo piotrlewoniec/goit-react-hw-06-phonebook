@@ -1,6 +1,16 @@
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 import css from './ContactList.module.css';
 import { Button } from '../button/Button';
+
+import { useSelector, useDispatch } from 'react-redux';
+import { selectFilter, selectContacts } from 'redux/selectors';
+import { deleteContact } from 'redux/contactsslice';
+
+import {
+  localStorageGetStatus,
+  localStorageRemove,
+} from 'js/locallibrary/locallibrary';
+import Notiflix from 'notiflix';
 
 const ContactListItem = ({ contact, action }) => (
   <li className={css.item}>
@@ -14,7 +24,26 @@ const ContactListItem = ({ contact, action }) => (
   </li>
 );
 
-export const ContactList = ({ contacts, deleteContact, filter }) => {
+export const ContactList = () => {
+  const dispatch = useDispatch();
+  const filter = useSelector(selectFilter);
+  const contacts = useSelector(selectContacts);
+
+  const localStorageLibraryName = 'contacts';
+
+  const handledeleteContact = evt => {
+    evt.preventDefault();
+    const id = evt.target.dataset.id;
+
+    const element = localStorageGetStatus(localStorageLibraryName, id, 'id'); // libraryName, element, keySearch
+    if (element !== undefined) {
+      localStorageRemove(localStorageLibraryName, id, 'id');
+    } else {
+      Notiflix.Notify.info('Contact does not exists in localstorage');
+    }
+    dispatch(deleteContact(id));
+  };
+
   if (contacts.length === 0) {
     return <p className={css.info}>Contacts list empty</p>;
   } else {
@@ -25,7 +54,7 @@ export const ContactList = ({ contacts, deleteContact, filter }) => {
             <ContactListItem
               key={'id' + index} //{contact.id}
               contact={contact}
-              action={deleteContact}
+              action={handledeleteContact}
             />
           ))}
         </ul>
@@ -48,8 +77,8 @@ export const ContactList = ({ contacts, deleteContact, filter }) => {
     }
   }
 };
-ContactList.propTypes = {
-  contacts: PropTypes.array,
-  deleteContact: PropTypes.func,
-  filter: PropTypes.string,
-};
+// ContactList.propTypes = {
+//   contacts: PropTypes.array,
+//   deleteContact: PropTypes.func,
+//   filter: PropTypes.string,
+// };

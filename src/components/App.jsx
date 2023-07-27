@@ -1,106 +1,41 @@
 import React from 'react';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import css from './App.module.css';
 import { ContactForm } from './contactform/ContactForm';
 import { Filter } from './filter/Filter';
 import { ContactList } from './contactlist/ContactList';
-import Notiflix from 'notiflix';
-import { nanoid } from 'nanoid';
 import { localStorageLoad } from '../js/system/localstorage';
-import {
-  localStorageGetStatus,
-  localStorageAdd,
-  localStorageRemove,
-} from '../js/locallibrary/locallibrary';
+
+import { useDispatch, useSelector } from 'react-redux';
+import { selectContacts } from 'redux/selectors';
+import { addContact } from 'redux/contactsslice';
 
 export const App = () => {
   const localStorageLibraryName = 'contacts';
-  const [contacts, setContacts] = useState([]);
-  const [filter, setFilter] = useState('');
+  const dispatch = useDispatch();
+  const contacts = useSelector(selectContacts);
 
   useEffect(() => {
     if (localStorageLibraryName in localStorage) {
       const libraryLocal = localStorageLoad(localStorageLibraryName);
-      setContacts([...libraryLocal]);
+      for (let element of libraryLocal) {
+        dispatch(addContact(element));
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleAddContact = evt => {
-    evt.preventDefault();
-    const name = evt.target.elements.name.value;
-    const number = evt.target.elements.number.value;
-    const id = nanoid();
-    if (name !== '' && contacts.find(contact => contact.name === name)) {
-      Notiflix.Notify.info('Contact allready exists');
-      return;
-    }
-    if (name === '' || number === '') {
-      Notiflix.Notify.warning('Please input missing data');
-      return;
-    }
-    const regexName = new RegExp("^[a-zA-Za]+(([' -][a-zA-Za])?[a-zA-Za]*)*$");
-    const regexNumberPattern =
-      /^\+?\d{1,4}[-.\s]?\(?\d{1,3}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/;
-    const regexNumber = new RegExp(regexNumberPattern);
-    if (!regexName.test(name) || !regexNumber.test(number)) {
-      Notiflix.Notify.failure('Correct inputed data');
-      return;
-    }
-    Notiflix.Notify.success('Adding new contact');
-    const element = localStorageGetStatus(
-      localStorageLibraryName,
-      name,
-      'name'
-    ); //  libraryName, element, keySearch
-    if (element !== undefined) {
-      Notiflix.Notify.info('Contact allready exists in localstorage');
-      //resolve: remove contact, add contact with new id?
-    } else {
-      localStorageAdd(localStorageLibraryName, {
-        id: id,
-        name: name,
-        number: number,
-      }); //libraryName, object
-    }
-    const contactsLocal = [...contacts, { id: id, name: name, number: number }];
-    setContacts([...contactsLocal]);
-    evt.target.reset();
-  };
-
-  const handleDeleteContact = evt => {
-    evt.preventDefault();
-    const id = evt.target.dataset.id;
-
-    const element = localStorageGetStatus(localStorageLibraryName, id, 'id'); // libraryName, element, keySearch
-    if (element !== undefined) {
-      localStorageRemove(localStorageLibraryName, id, 'id');
-    } else {
-      Notiflix.Notify.info('Contact does not exists in localstorage');
-    }
-    const contactsLocal = [...contacts];
-    const index = contactsLocal.findIndex(element => element.id === id);
-    if (index > -1) {
-      contactsLocal.splice(index, 1);
-      setContacts([...contactsLocal]);
-    }
-  };
-
-  const handleFilterContact = evt => {
-    setFilter(evt.target.value);
-  };
+  useEffect(() => {
+    console.log(contacts);
+  }, [contacts]);
 
   return (
     <div className={css.app_holder}>
       <h1 className={css.app_title}>Phonebook</h1>
-      <ContactForm addContact={handleAddContact} />
+      <ContactForm />
       <h2 className={css.app_subtitle}>Contacts</h2>
-      <Filter inputValue={filter} action={handleFilterContact} />
-
-      <ContactList
-        contacts={contacts}
-        deleteContact={handleDeleteContact}
-        filter={filter}
-      />
+      <Filter />
+      <ContactList />
     </div>
   );
 };
