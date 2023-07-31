@@ -69,7 +69,7 @@ export const ContactList = () => {
             <ContactListItem
               key={'id' + index} //{contact.id}
               contact={contact}
-              action={deleteContact}
+              action={handledeleteContact}
             />
           ))}
         </ul>

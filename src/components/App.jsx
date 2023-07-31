@@ -6,14 +6,12 @@ import { Filter } from './filter/Filter';
 import { ContactList } from './contactlist/ContactList';
 import { localStorageLoad } from '../js/system/localstorage';
 
-import { useDispatch, useSelector } from 'react-redux';
-import { selectContacts } from 'redux/selectors';
+import { useDispatch } from 'react-redux';
 import { addContact } from 'redux/contactsslice';
 
 export const App = () => {
   const localStorageLibraryName = 'contacts';
   const dispatch = useDispatch();
-  const contacts = useSelector(selectContacts);
 
   useEffect(() => {
     if (localStorageLibraryName in localStorage) {
@@ -24,10 +22,6 @@ export const App = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    console.log(contacts);
-  }, [contacts]);
 
   return (
     <div className={css.app_holder}>
